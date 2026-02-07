@@ -13,6 +13,108 @@ CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 NC='\033[0m'
 
+# Function to install Panel
+install_panel() {
+    echo -e "\n${RED}Starting Panel Installation...${NC}"
+    
+    # Create an expect script to handle interactive prompts
+    cat > /tmp/install_panel.exp << 'EOF'
+#!/usr/bin/expect -f
+set timeout -1
+spawn bash <(curl -s https://pterodactyl-installer.se)
+
+# First question: Panel or Wings (0 for Panel)
+expect "Select: "
+send "0\r"
+
+# Handle other questions with default answers
+expect {
+    "Continue? (y/N): " {
+        send "y\r"
+        exp_continue
+    }
+    "Is this the correct FQDN? (y/N): " {
+        send "y\r"
+        exp_continue
+    }
+    "Continue with Let's Encrypt? (y/N): " {
+        send "y\r"
+        exp_continue
+    }
+    "Enter an email address for Let's Encrypt:" {
+        send "admin@example.com\r"
+        exp_continue
+    }
+    "Database name (panel):" {
+        send "\r"  # Press Enter for default
+        exp_continue
+    }
+    "Database username (pterodactyl):" {
+        send "\r"  # Press Enter for default
+        exp_continue
+    }
+    "Database password:" {
+        send "pterodactyl\r"  # Default password
+        exp_continue
+    }
+    "Confirm password:" {
+        send "pterodactyl\r"  # Confirm password
+        exp_continue
+    }
+    "Select the desired timezone:" {
+        send "\r"  # Press Enter for default
+        exp_continue
+    }
+    "eof" {
+        exit 0
+    }
+    timeout {
+        send "\r"
+        exp_continue
+    }
+}
+EOF
+    
+    chmod +x /tmp/install_panel.exp
+    /tmp/install_panel.exp
+    rm -f /tmp/install_panel.exp
+}
+
+# Function to install Wings
+install_wings() {
+    echo -e "\n${RED}Starting Wings Installation...${NC}"
+    
+    # Create an expect script to handle interactive prompts
+    cat > /tmp/install_wings.exp << 'EOF'
+#!/usr/bin/expect -f
+set timeout -1
+spawn bash <(curl -s https://pterodactyl-installer.se)
+
+# First question: Panel or Wings (1 for Wings)
+expect "Select: "
+send "1\r"
+
+# Handle other questions with default answers
+expect {
+    "Continue? (y/N): " {
+        send "y\r"
+        exp_continue
+    }
+    "eof" {
+        exit 0
+    }
+    timeout {
+        send "\r"
+        exp_continue
+    }
+}
+EOF
+    
+    chmod +x /tmp/install_wings.exp
+    /tmp/install_wings.exp
+    rm -f /tmp/install_wings.exp
+}
+
 # Main menu
 echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${RED}           🚀 WANNY SCRIPT MANAGER${NC}"
@@ -42,14 +144,10 @@ read -p " " choice
 
 case $choice in
     1)
-        echo -e "\n${RED}Starting Panel Installation...${NC}"
-        # Automatically input 0 for Panel
-        echo "0" | bash <(curl -s https://pterodactyl-installer.se)
+        install_panel
         ;;
     2)
-        echo -e "\n${RED}Starting Wings Installation...${NC}"
-        # Automatically input 1 for Wings
-        echo "1" | bash <(curl -s https://pterodactyl-installer.se)
+        install_wings
         ;;
     3)
         echo -e "\n${RED}Starting Uninstall Tools...${NC}"
